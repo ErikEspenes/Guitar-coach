@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guitar Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E8EDEB;--card:#F6F8F7;--ink:#17323A;--mut:#5B7077;--brass:#A87B2A;--teal:#1F6F72;--line:#C5D0CE;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12242A;--card:#1B3139;--ink:#E6EEEC;--mut:#93A9AE;--brass:#D9A93F;--teal:#4FB3B5;--line:#2C464E;--on:#0f1d22}}
+:root[data-theme="dark"]{--bg:#12242A;--card:#1B3139;--ink:#E6EEEC;--mut:#93A9AE;--brass:#D9A93F;--teal:#4FB3B5;--line:#2C464E;--on:#0f1d22}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:17px;line-height:1.5}
+main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+h1,h2,.big{font-family:"Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+h1{font-size:34px;margin:8px 0 2px;font-weight:800}
+h2{font-size:22px;margin:0 0 8px}
+p{margin:0 0 10px;color:var(--mut)}
+nav{display:flex;overflow-x:auto;gap:6px;margin:14px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:6px 0;z-index:5}
+nav button{flex:1 0 auto;padding:11px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:600 14px "Source Sans 3",sans-serif;cursor:pointer}
+nav button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{padding:12px 16px;border-radius:10px;border:0;background:var(--teal);color:var(--on);font:700 16px "Source Sans 3",sans-serif;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.string{flex:1 1 90px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+.string b{font:800 28px "Bricolage Grotesque",sans-serif}
+.string span{font-size:13px;color:var(--mut)}
+.string.on{border-color:var(--brass);box-shadow:inset 0 0 0 2px var(--brass)}
+.chords{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-bottom:12px}
+.chords button{padding:10px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:800 20px "Bricolage Grotesque",sans-serif;cursor:pointer}
+.chords button[aria-pressed=true]{background:var(--brass);color:var(--on);border-color:var(--brass)}
+.diagram{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+svg text{font-family:"Source Sans 3",sans-serif}
+.big{font-size:84px;font-weight:800;line-height:1;margin:6px 0}
+.beats{display:flex;gap:8px;margin:8px 0 14px}
+.beats i{width:18px;height:18px;border-radius:50%;background:var(--line)}
+.beats i.on{background:var(--brass)}
+label{display:block;font-weight:600;margin:10px 0 4px}
+select,input[type=range]{width:100%}
+select{padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0}
+.step input{width:24px;height:24px;margin-top:3px;accent-color:var(--teal)}
+.step b{display:block}
+.step span{color:var(--mut);font-size:15px}
+.hide{display:none}
+:root{--ok:#2E9E5B;--warn:#C99A1E;--bad:#C8483A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ok:#4CC47F;--warn:#E6B93F;--bad:#E57B6E}}
+:root[data-theme="dark"]{--ok:#4CC47F;--warn:#E6B93F;--bad:#E57B6E}
+.string.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 22%,var(--bg))}
+.string.ok::after{content:"Stemt";font-weight:700;font-size:13px;color:var(--ok)}
+.string.cur{box-shadow:inset 0 0 0 2px var(--teal)}
+.meter{position:relative;height:16px;border-radius:8px;background:var(--line);margin:16px 0 8px;overflow:hidden}
+.meter .zone{position:absolute;left:45%;width:10%;top:0;bottom:0;background:color-mix(in srgb,var(--ok) 45%,transparent)}
+.meter .needle{position:absolute;top:0;bottom:0;width:6px;margin-left:-3px;left:50%;background:var(--ink);border-radius:3px;transition:left .08s linear}
+.meter.good{background:color-mix(in srgb,var(--ok) 35%,var(--line))}
+.meter.good .needle{background:var(--ok)}
+.status{font:700 20px "Bricolage Grotesque",sans-serif;min-height:30px}
+.status.good{color:var(--ok)}
+.tl{display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin-top:10px;max-width:100%}
+.bar{flex:0 0 78px;height:92px;border-radius:10px;border:2px solid var(--line);background:var(--bg);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 26px "Bricolage Grotesque",sans-serif;overflow:hidden}
+.bar small{font:600 12px "Source Sans 3",sans-serif;color:var(--mut);min-height:16px}
+.bar.cur{border-color:var(--ink)}
+.bar .fill{position:absolute;left:0;bottom:0;height:5px;width:0;background:var(--ink)}
+.bar.g{background:color-mix(in srgb,var(--ok) 32%,var(--bg));border-color:var(--ok)}
+.bar.y{background:color-mix(in srgb,var(--warn) 32%,var(--bg));border-color:var(--warn)}
+.bar.r{background:color-mix(in srgb,var(--bad) 30%,var(--bg));border-color:var(--bad)}
+.fdiag{display:flex;gap:16px;align-items:flex-end;justify-content:center;margin-top:12px}
+.fdiag figure{margin:0;text-align:center}
+.fdiag figcaption{font:800 18px "Bricolage Grotesque",sans-serif;margin-bottom:2px}
+.fdiag .nxt figcaption{font-size:14px;color:var(--mut)}
+.fdiag .nxt svg{width:96px;height:auto;opacity:.85}
+.song{display:block;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);margin-bottom:8px;cursor:pointer;font:700 18px "Bricolage Grotesque",sans-serif}
+.song small{display:block;color:var(--mut);font:400 15px "Source Sans 3",sans-serif}
+.song[aria-pressed=true]{border-color:var(--brass);box-shadow:inset 0 0 0 2px var(--brass)}
+.strum{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.pat-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.cell{border:1px solid var(--line);border-radius:8px;text-align:center;padding:4px 0;background:var(--card)}
+.cell small{display:block;color:var(--mut);font-size:12px}
+.cell b{display:block;font:800 24px "Bricolage Grotesque",sans-serif;line-height:1.2}
+.cell.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cell.on small{color:var(--bg)}
+.strum svg{display:block;width:100%;max-width:300px;margin:10px auto 0}
+.stxt{font-weight:700;color:var(--ink);margin:6px 0 0;text-align:center;min-height:26px}
+.shint{font-size:15px;margin:6px 0 0}
+.status.warn{color:var(--warn)}.status.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<main>
+<h1>Guitar Coach</h1>
+<p>Lær å spille gitar steg for steg. Skru på lyden og ha gitaren klar.</p>
+<nav role="tablist">
+<button role="tab" data-t="loype" aria-selected="true">Løype</button>
+<button role="tab" data-t="stem" aria-selected="false">Stemming</button>
+<button role="tab" data-t="akkord" aria-selected="false">Akkorder</button>
+<button role="tab" data-t="ov" aria-selected="false">Øv</button>
+<button role="tab" data-t="test" aria-selected="false">Test</button>
+<button role="tab" data-t="sanger" aria-selected="false">Sanger</button>
+</nav>
+
+<section id="loype">
+<div class="card"><h2>Læringsløype</h2><p>Kryss av når du får det til uten å stoppe. Fremdriften lagres på denne enheten.</p><div id="steps"></div><p id="prog" style="margin-top:10px"></p></div>
+</section>
+
+<section id="stem" class="hide">
+<div class="card"><h2>Stem gitaren</h2>
+<p>Trykk på en streng og stem din til tonen du hører. Fra tykkeste til tynneste streng: E A D G B E.</p>
+<div class="row" id="strings"></div></div>
+<div class="card"><h2>Stem med mikrofon</h2>
+<p>Trykk Start og spill én åpen streng om gangen. Appen finner strengen selv. Når den er stemt, blir den grønn.</p>
+<button class="btn" id="mic">Start mikrofon</button>
+<div class="meter" id="meter"><div class="zone"></div><div class="needle" id="needle"></div></div>
+<div class="row" style="justify-content:space-between"><span>For lav</span><span>For høy</span></div>
+<div class="big" id="det">-</div>
+<div class="status" id="hint" role="status" aria-live="polite"></div>
+<p id="micerr"></p>
+<p style="margin-top:14px"><b>Virker ikke mikrofonen?</b> Ta opp 3 sekunder av én åpen streng med telefonens opptaker, så analyserer appen opptaket.</p>
+<label class="btn alt" for="rec" style="display:inline-block;cursor:pointer;margin:0">Ta opp og analyser</label>
+<input type="file" id="rec" accept="audio/*" capture style="position:absolute;opacity:0;width:1px;height:1px">
+</div>
+</section>
+
+<section id="akkord" class="hide">
+<div class="card"><h2>Akkorder</h2><div class="chords" id="chordBtns"></div>
+<div class="diagram"><div id="diagram"></div><div><div class="big" id="cname"></div><p id="ctip"></p><div class="row"><button class="btn" id="strum">Spill akkord</button><button class="btn alt" id="pick">Plukk strengene</button></div></div></div>
+<p style="margin-top:10px">Tall i sirklene viser fingeren: 1 pekefinger, 2 langfinger, 3 ringfinger, 4 lillefinger. O er åpen streng, X skal ikke slås an.</p></div>
+</section>
+
+<section id="ov" class="hide">
+<div class="card"><h2>Akkordskifte-trener</h2>
+<p>Skift akkord hver fjerde slag. Start rolig og øk tempoet når du skifter uten feil.</p>
+<div class="row"><div style="flex:1"><label for="selA">Akkord 1</label><select id="selA"></select></div><div style="flex:1"><label for="selB">Akkord 2</label><select id="selB"></select></div></div>
+<label for="bpm">Tempo: <span id="bpmv">60</span> slag/min</label><input type="range" id="bpm" min="40" max="140" value="60">
+<div class="big" id="now">G</div><p id="next">Neste: C</p>
+<div class="beats" id="beats"></div>
+<div class="row"><button class="btn" id="go">Start</button></div>
+<p id="mins" style="margin-top:12px"></p></div>
+<div class="card"><h2>Første sang</h2><p>Akkordrekken Em, C, G, D brukes i svært mange sanger. Ett slag nedover per slag, fire slag per akkord.</p>
+<div class="row"><button class="btn alt" data-prog="Em,C,G,D">Fyll inn i treneren</button></div></div>
+</section>
+<section id="test" class="hide">
+<div class="card"><h2>Akkordtest</h2>
+<p>Velg en akkord, trykk Start og spill den. Appen sier om den er riktig og hva som eventuelt mangler.</p>
+<div class="chords" id="tBtns"></div>
+<div class="diagram"><div id="tDiag"></div><div><div class="big" id="tName"></div>
+<div class="status" id="tStat" role="status" aria-live="polite">Trykk Start</div><p id="tDetail"></p></div></div>
+<div class="row" style="margin-top:12px"><button class="btn" id="tGo">Start lytting</button><button class="btn alt" id="tHear">Hør akkorden</button></div>
+<label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="tRand" style="width:22px;height:22px;accent-color:var(--teal)">Utfordring: ny tilfeldig akkord for hver riktige</label>
+<p id="tScore" style="margin-top:8px"></p><p id="tErr"></p></div>
+<div class="card"><h2>Spill i takt</h2>
+<p>Spill akkordene i rekkefølge, og slå an akkorden på hvert slag. Appen hører hva du spiller og gir grønt (riktig), gult (nesten) eller rødt (feil) i tidslinjen mens du spiller.</p>
+<label>Velg akkorder</label>
+<div class="chords" id="fChips"></div>
+<div class="row"><button class="btn alt" id="fAll">Velg alle</button><button class="btn alt" id="fNone">Fjern alle</button></div>
+<p id="fSel" style="margin:8px 0 0"></p>
+<label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="fRand" style="width:22px;height:22px;accent-color:var(--teal)">Tilfeldig rekkefølge</label>
+<div id="fHost"></div></div>
+</section>
+<section id="sanger" class="hide">
+<div class="card"><h2>Øv på sanger</h2>
+<p>Velg en sang og spill akkordene i takt. Slå an akkorden på hvert slag. Appen gir grønt, gult eller rødt, og du ser gripebildet mens du spiller. Akkordene er forenklet og kan avvike litt fra originalen. Tekst er ikke med.</p>
+<div id="songList"></div>
+<div class="row" style="margin:6px 0 10px"><button class="btn alt" id="sHear">Hør sangen først</button></div>
+<p id="songInfo"></p>
+<div id="sHost"></div></div>
+</section>
+</main>
+
+<script>
+const OPEN=[40,45,50,55,59,64], NAMES=["E","A","D","G","B","E"], LBL=["Lav E (6)","A (5)","D (4)","G (3)","B (2)","Høy E (1)"];
+const CH={
+Em:{f:[0,2,2,0,0,0],g:[0,2,3,0,0,0],t:"Lett første akkord. To fingre på 5. og 4. streng, 2. bånd."},
+Am:{f:[-1,0,2,2,1,0],g:[0,0,2,3,1,0],t:"Slå an fra A-strengen. Tre fingre i en liten trekant."},
+E:{f:[0,2,2,1,0,0],g:[0,2,3,1,0,0],t:"Som Em, men legg pekefingeren på 3. streng, 1. bånd."},
+A:{f:[-1,0,2,2,2,0],g:[0,0,1,2,3,0],t:"Tre fingre side om side i 2. bånd. Slå an fra A-strengen."},
+D:{f:[-1,-1,0,2,3,2],g:[0,0,0,1,3,2],t:"Slå kun de fire tynneste strengene."},
+C:{f:[-1,3,2,0,1,0],g:[0,3,2,0,1,0],t:"Slå an fra A-strengen. Ringfingeren er lengst unna."},
+G:{f:[3,2,0,0,0,3],g:[2,1,0,0,0,3],t:"Alle seks strenger. Strekk fingrene godt ut."}};
+const STEPS=[
+["Hold gitaren og stem den","Sitt rett, la gitaren hvile mot kroppen. Stem alle seks strenger i Stemming-fanen."],
+["Em og Am","Skift mellom dem 10 ganger på rad uten å stoppe."],
+["E og A","Samme øvelse. Slå ned på alle strenger du skal bruke."],
+["D","Skift mellom A og D, deretter D og Em."],
+["C og G","Skift mellom C og G. Dette er den vanskeligste overgangen, ta det rolig."],
+["Første sang: Em, C, G, D","Spill hele rekken i 60 slag/min uten stopp i to minutter."]];
+
+let ctx;
+function ac(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();return ctx}
+function pluck(m,when=0,vol=.5){const c=ac(),f=440*Math.pow(2,(m-69)/12),n=Math.round(c.sampleRate/f),len=c.sampleRate*1.6,b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);
+for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+for(let i=n;i<len;i++)d[i]=(d[i-n]+d[i-n+1])/2*.997;
+const s=c.createBufferSource(),g=c.createGain();g.gain.value=vol;s.buffer=b;s.connect(g).connect(c.destination);s.start(c.currentTime+when)}
+function click(hi){const c=ac(),o=c.createOscillator(),g=c.createGain();o.frequency.value=hi?1200:800;g.gain.setValueAtTime(.2,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.06);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.07)}
+function notes(name){const k=CH[name];return k.f.map((f,i)=>f<0?null:OPEN[i]+f).filter(x=>x!==null)}
+function strum(name,gap=.035){notes(name).forEach((m,i)=>pluck(m,i*gap,.35))}
+
+// Tabs
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b));
+["loype","stem","akkord","ov","test","sanger"].forEach(id=>document.getElementById(id).classList.toggle("hide",id!==b.dataset.t));
+if(b.dataset.t!=="ov")stopTrainer();if(b.dataset.t!=="stem")stopMic();if(b.dataset.t!=="test")stopTest();players.forEach(p=>p.stop());stopPv()});
+
+// Storage helpers
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+// Steps
+const done=load("gs_done",[]);
+function renderSteps(){
+const box=document.getElementById("steps");box.innerHTML="";
+STEPS.forEach((s,i)=>{const d=document.createElement("label");d.className="step";d.style.margin=0;
+d.innerHTML=`<input type="checkbox" ${done.includes(i)?"checked":""}><div><b>${s[0]}</b><span>${s[1]}</span></div>`;
+d.querySelector("input").onchange=e=>{const k=done.indexOf(i);if(e.target.checked&&k<0)done.push(i);if(!e.target.checked&&k>=0)done.splice(k,1);save("gs_done",done);prog()};box.appendChild(d)});prog()}
+function prog(){document.getElementById("prog").textContent=`${done.length} av ${STEPS.length} steg fullført`}
+renderSteps();
+
+// Tuning
+const sb=document.getElementById("strings");
+OPEN.forEach((m,i)=>{const b=document.createElement("button");b.className="string";b.innerHTML=`<b>${NAMES[i]}</b><span>${LBL[i]}</span>`;
+b.onclick=()=>{pluck(m,0,.7);b.classList.add("on");setTimeout(()=>b.classList.remove("on"),900)};sb.appendChild(b)});
+
+// Mic tuner
+const FREQ=OPEN.map(m=>440*Math.pow(2,(m-69)/12));
+const micBtn=document.getElementById("mic"),needle=document.getElementById("needle"),meter=document.getElementById("meter"),det=document.getElementById("det"),hint=document.getElementById("hint"),micerr=document.getElementById("micerr");
+let stream=null,src=null,analyser=null,micTimer=null,hold=0,holdIdx=-1,centsBuf=[];
+const tbuf=new Float32Array(4096);
+function pitch(b,sr){
+let rms=0;for(let i=0;i<b.length;i++)rms+=b[i]*b[i];rms=Math.sqrt(rms/b.length);if(rms<0.008)return null;
+const minL=Math.floor(sr/400),maxL=Math.floor(sr/70),W=2048,n=new Float32Array(maxL+2);let max=0;
+for(let l=minL;l<=maxL+1;l++){let a=0,m=0;for(let i=0;i<W;i++){const x=b[i],y=b[i+l];a+=x*y;m+=x*x+y*y}n[l]=m?2*a/m:0;if(l<=maxL&&n[l]>max)max=n[l]}
+if(max<0.8)return null;
+for(let l=minL+1;l<=maxL;l++){if(n[l]>=0.9*max&&n[l]>=n[l-1]&&n[l]>=n[l+1]){const a=n[l-1],c=n[l],d=n[l+1],den=a-2*c+d,sh=den?0.5*(a-d)/den:0;return sr/(l+sh)}}
+return null}
+function setCur(i){[...sb.children].forEach((e,k)=>e.classList.toggle("cur",k===i))}
+function micTick(){
+analyser.getFloatTimeDomainData(tbuf);
+const f=pitch(tbuf,ac().sampleRate);
+if(!f){hold=0;return}
+let bi=0,bc=1e9;FREQ.forEach((t,i)=>{const c=1200*Math.log2(f/t);if(Math.abs(c)<Math.abs(bc)){bc=c;bi=i}});
+if(Math.abs(bc)>150){det.textContent="-";hint.textContent="Spill én åpen streng";hint.className="status";return}
+if(bi!==holdIdx){holdIdx=bi;hold=0;centsBuf=[]}
+centsBuf.push(bc);if(centsBuf.length>5)centsBuf.shift();
+const c=centsBuf.reduce((a,b)=>a+b,0)/centsBuf.length;
+det.textContent=NAMES[bi];setCur(bi);
+needle.style.left=(50+Math.max(-50,Math.min(50,c))+"%");
+const good=Math.abs(c)<=5;meter.classList.toggle("good",good);
+hint.className="status"+(good?" good":"");
+hint.textContent=good?"Stemt":(c<0?"For lav, stram strengen":"For høy, slakk strengen");
+if(good){hold++;if(hold>=6)sb.children[bi].classList.add("ok")}else hold=0}
+async function startMic(){
+micerr.textContent="";
+try{
+stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+const c=ac();src=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;src.connect(analyser);
+[...sb.children].forEach(e=>e.classList.remove("ok"));
+micTimer=setInterval(micTick,60);micBtn.textContent="Stopp mikrofon";hint.textContent="Spill en streng"
+}catch(e){
+let m="Mikrofonfeil ("+(e&&e.name||"ukjent")+"). ";
+if(!navigator.mediaDevices||!window.isSecureContext)m+="Siden åpnes ikke på en sikker adresse (https), så nettleseren skjuler mikrofonen. Adressen må starte med https:// eller file:///.";
+else if(e&&e.name==="NotAllowedError")m+="Mikrofonen er blokkert for denne siden. Trykk på låsen i adressefeltet, velg Nettstedsinnstillinger og sett Mikrofon til Tillat. Hvis siden ligger inne i en annen side eller app, åpne den direkte i nettleseren.";
+else if(e&&e.name==="NotFoundError")m+="Fant ingen mikrofon.";
+else m+="Prøv å laste siden på nytt.";
+micerr.textContent=m}}
+function stopMic(){
+if(!micTimer)return;clearInterval(micTimer);micTimer=null;
+if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
+if(src)src.disconnect();src=null;analyser=null;holdIdx=-1;
+micBtn.textContent="Start mikrofon";hint.textContent="";hint.className="status";det.textContent="-";needle.style.left="50%";meter.classList.remove("good");setCur(-1)}
+micBtn.onclick=()=>micTimer?stopMic():startMic();
+document.getElementById("rec").onchange=async e=>{
+const file=e.target.files[0];if(!file)return;
+micerr.textContent="";hint.className="status";hint.textContent="Analyserer opptaket...";
+try{
+const ab=await file.arrayBuffer(),au=await ac().decodeAudioData(ab),d=au.getChannelData(0),sr=au.sampleRate,hits=[];
+for(let s=0;s+4096<=d.length;s+=2048){const f=pitch(d.subarray(s,s+4096),sr);if(!f)continue;
+let bi=0,bc=1e9;FREQ.forEach((t,i)=>{const c=1200*Math.log2(f/t);if(Math.abs(c)<Math.abs(bc)){bc=c;bi=i}});
+if(Math.abs(bc)<=150)hits.push([bi,bc])}
+if(!hits.length){det.textContent="-";hint.textContent="Fant ingen tydelig tone. Prøv igjen nærmere gitaren.";return}
+const cnt={};hits.forEach(h=>cnt[h[0]]=(cnt[h[0]]||0)+1);
+const bi=+Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+const cs=hits.filter(h=>h[0]===bi).map(h=>h[1]).sort((a,b)=>a-b),c=cs[Math.floor(cs.length/2)];
+const good=Math.abs(c)<=5;
+det.textContent=NAMES[bi];setCur(bi);
+needle.style.left=(50+Math.max(-50,Math.min(50,c)))+"%";meter.classList.toggle("good",good);
+hint.className="status"+(good?" good":"");
+hint.textContent=good?"Stemt":(c<0?"For lav, stram strengen":"For høy, slakk strengen");
+if(good)sb.children[bi].classList.add("ok");else sb.children[bi].classList.remove("ok")
+}catch(err){hint.textContent="";micerr.textContent="Kunne ikke lese opptaket ("+(err&&err.name||"ukjent")+"). Prøv å ta opp på nytt."}
+e.target.value=""};
+
+// Chords
+let cur="Em";
+const cb=document.getElementById("chordBtns");
+Object.keys(CH).forEach(n=>{const b=document.createElement("button");b.textContent=n;b.onclick=()=>showChord(n);cb.appendChild(b)});
+function diagram(name){
+const k=CH[name],W=170,H=200,x0=30,y0=36,sx=22,sy=30;let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkorddiagram for ${name}">`;
+const minF=Math.min(...k.f.filter(f=>f>0),1);
+s+=`<rect x="${x0-1}" y="${y0-3}" width="${sx*5+2}" height="5" fill="var(--ink)"/>`;
+for(let i=1;i<=5;i++)s+=`<line x1="${x0}" x2="${x0+sx*5}" y1="${y0+sy*i}" y2="${y0+sy*i}" stroke="var(--line)" stroke-width="2"/>`;
+for(let i=0;i<6;i++)s+=`<line x1="${x0+sx*i}" x2="${x0+sx*i}" y1="${y0}" y2="${y0+sy*5}" stroke="var(--mut)" stroke-width="${2.4-i*.3}"/>`;
+k.f.forEach((f,i)=>{const x=x0+sx*i;
+if(f<0)s+=`<text x="${x}" y="${y0-12}" text-anchor="middle" font-size="15" fill="var(--mut)" font-weight="700">X</text>`;
+else if(f===0)s+=`<text x="${x}" y="${y0-12}" text-anchor="middle" font-size="15" fill="var(--mut)" font-weight="700">O</text>`;
+else s+=`<circle cx="${x}" cy="${y0+sy*(f-.5)}" r="10" fill="var(--brass)"/><text x="${x}" y="${y0+sy*(f-.5)+5}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on)">${k.g[i]}</text>`});
+NAMES.forEach((n,i)=>s+=`<text x="${x0+sx*i}" y="${H-6}" text-anchor="middle" font-size="12" fill="var(--mut)">${n}</text>`);
+return s+"</svg>"}
+function showChord(n){cur=n;document.querySelectorAll("#chordBtns button").forEach(b=>b.setAttribute("aria-pressed",b.textContent===n));
+document.getElementById("diagram").innerHTML=diagram(n);document.getElementById("cname").textContent=n;document.getElementById("ctip").textContent=CH[n].t}
+document.getElementById("strum").onclick=()=>strum(cur);
+document.getElementById("pick").onclick=()=>notes(cur).forEach((m,i)=>pluck(m,i*.45,.5));
+showChord("Em");
+
+// Trainer
+const selA=document.getElementById("selA"),selB=document.getElementById("selB");
+Object.keys(CH).forEach(n=>{selA.add(new Option(n,n));selB.add(new Option(n,n))});selA.value="G";selB.value="C";
+const bpm=document.getElementById("bpm"),bpmv=document.getElementById("bpmv"),beatsEl=document.getElementById("beats");
+for(let i=0;i<4;i++)beatsEl.appendChild(document.createElement("i"));
+bpm.oninput=()=>{bpmv.textContent=bpm.value;if(timer){clearInterval(timer);timer=setInterval(tick,60000/bpm.value)}};
+let timer=null,beat=0,which=0,startT=0;
+const now=document.getElementById("now"),nextEl=document.getElementById("next"),go=document.getElementById("go");
+function labels(){const a=which?selB.value:selA.value,b=which?selA.value:selB.value;now.textContent=a;nextEl.textContent="Neste: "+b}
+function tick(){
+if(beat===0&&timer&&tickCount>0)which=1-which;
+labels();
+click(beat===0);if(beat===0)strum(which?selB.value:selA.value);
+[...beatsEl.children].forEach((e,i)=>e.classList.toggle("on",i===beat));
+beat=(beat+1)%4;tickCount++}
+let tickCount=0;
+function stopTrainer(){if(!timer)return;clearInterval(timer);timer=null;go.textContent="Start";
+const mins=(Date.now()-startT)/60000;const tot=load("gs_mins",0)+mins;save("gs_mins",tot);showMins();
+[...beatsEl.children].forEach(e=>e.classList.remove("on"))}
+function showMins(){const m=load("gs_mins",0);document.getElementById("mins").textContent=`Total øvingstid med treneren: ${Math.round(m)} min`}
+go.onclick=()=>{if(timer){stopTrainer();return}ac();beat=0;which=0;tickCount=0;startT=Date.now();go.textContent="Stopp";tick();timer=setInterval(tick,60000/bpm.value)};
+[selA,selB].forEach(s=>s.onchange=labels);
+document.querySelectorAll("[data-prog]").forEach(b=>b.onclick=()=>{const p=b.dataset.prog.split(",");alert("Spill rekken: "+p.join(" - ")+". Treneren bytter mellom to akkorder om gangen, så start med Em og C, deretter G og D.");selA.value=p[0];selB.value=p[1];labels()});
+labels();showMins();
+// Akkordtest
+const PCN=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const tStat=document.getElementById("tStat"),tDetail=document.getElementById("tDetail"),tGo=document.getElementById("tGo"),tScore=document.getElementById("tScore"),tErr=document.getElementById("tErr"),tRand=document.getElementById("tRand");
+let tCur="Em",tStream=null,tAn=null,tSrc=null,tTimer=null,tFFT=null,tOk=0,tIgnore=0,tT0=0,tHits=0,tBest=0;
+const tb=document.getElementById("tBtns");
+Object.keys(CH).forEach(n=>{const b=document.createElement("button");b.textContent=n;b.onclick=()=>showT(n);tb.appendChild(b)});
+function showT(n){tCur=n;tOk=0;tIgnore=Date.now()+700;tT0=Date.now();
+document.querySelectorAll("#tBtns button").forEach(b=>b.setAttribute("aria-pressed",b.textContent===n));
+document.getElementById("tDiag").innerHTML=diagram(n);document.getElementById("tName").textContent=n;
+if(tTimer){tStat.textContent="Spill "+n;tStat.className="status";tDetail.textContent=""}}
+function tSay(t,good,d){tStat.textContent=t;tStat.className="status"+(good?" good":"");tDetail.textContent=d||""}
+function predChroma(name){const c=new Float32Array(12);CH[name].f.forEach((f,i)=>{if(f<0)return;const m=OPEN[i]+f;for(let h=1;h<=6;h++){const mi=m+12*Math.log2(h),n=Math.round(mi);if(Math.abs(mi-n)<0.4)c[n%12]+=1/h}});return c}
+const PRED={};Object.keys(CH).forEach(n=>PRED[n]=predChroma(n));
+function nrm(v){const l=Math.hypot(...v)||1;return Array.from(v,x=>x/l)}
+function cosv(a,b){return a.reduce((s,x,i)=>s+x*b[i],0)}
+function listen(){
+tAn.getFloatFrequencyData(tFFT);
+const bw=ac().sampleRate/tAn.fftSize,lo=Math.floor(75/bw),hi=Math.min(tFFT.length,Math.floor(1000/bw));
+let peak=-200;for(let i=lo;i<hi;i++)if(tFFT[i]>peak)peak=tFFT[i];
+if(peak<-75)return null;
+const ch=new Float32Array(12);
+for(let i=lo;i<hi;i++){const db=tFFT[i];if(db<peak-35)continue;const mi=69+12*Math.log2(i*bw/440),n=Math.round(mi);if(Math.abs(mi-n)<0.4)ch[((n%12)+12)%12]+=Math.pow(10,db/20)}
+const o=nrm(ch),sc={};Object.keys(CH).forEach(n=>sc[n]=cosv(o,nrm(PRED[n])));
+const best=Object.keys(sc).sort((x,y)=>sc[y]-sc[x])[0];
+return {o,sc,best}}
+function testTick(){
+if(Date.now()<tIgnore)return;
+const r=listen();
+if(!r){tOk=0;tSay("Slå an akkorden","");return}
+const {o,sc,best}=r,st=sc[tCur];
+if(st>=0.8&&sc[best]-st<=0.04){tOk++;
+if(tOk>=3){tSay("Riktig!",true,"");
+if(tOk===3){tHits++;const sec=(Date.now()-tT0)/1000;if(!tBest||sec<tBest)tBest=sec;
+tScore.textContent="Riktige: "+tHits+(tRand.checked?". Raskeste: "+tBest.toFixed(1)+" s":"");
+if(tRand.checked){const keys=Object.keys(CH).filter(x=>x!==tCur);setTimeout(()=>showT(keys[Math.floor(Math.random()*keys.length)]),1200)}}}
+else tSay("Nesten...","");return}
+tOk=0;
+const k=CH[tCur],pn=nrm(PRED[tCur]),pcs=[...new Set(notes(tCur).map(m=>m%12))];
+const miss=pcs.filter(p=>pn[p]>0.25&&o[p]<0.35*pn[p]);
+let d="";
+if(miss.length){const sts=miss.map(p=>OPEN.map((x,i)=>k.f[i]>=0&&(x+k.f[i])%12===p?(6-i)+". streng":null).filter(Boolean).join(" eller ")).join(", ");d="Mangler tonen "+miss.map(p=>PCN[p]).join(", ")+". Sjekk "+sts+"."}
+else if(best!==tCur&&sc[best]>=0.8)d="Dette høres mer ut som "+best+". Sjekk fingersettingen mot diagrammet.";
+else d="Slå an alle strengene i akkorden og la dem klinge. Sjekk at ingen fingre demper nabostrengene.";
+tSay("Ikke helt","",d)}
+async function openMic(el){
+if(tAn)return true;
+try{
+tStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+const c=ac();tSrc=c.createMediaStreamSource(tStream);tAn=c.createAnalyser();tAn.fftSize=16384;tAn.smoothingTimeConstant=0.3;tAn.minDecibels=-110;tSrc.connect(tAn);
+tFFT=new Float32Array(tAn.frequencyBinCount);return true
+}catch(e){(el||tErr).textContent="Mikrofonfeil ("+(e&&e.name||"ukjent")+"). Åpne siden direkte i Chrome og tillat mikrofon.";return false}}
+function closeMic(){if(tStream)tStream.getTracks().forEach(t=>t.stop());tStream=null;if(tSrc)tSrc.disconnect();tSrc=null;tAn=null}
+async function startTest(){
+tErr.textContent="";players.forEach(p=>p.stop());
+if(!(await openMic()))return;
+tOk=0;tT0=Date.now();tIgnore=Date.now()+400;
+tTimer=setInterval(testTick,120);tGo.textContent="Stopp lytting";tSay("Spill "+tCur,"")}
+function stopTest(){
+if(!tTimer)return;clearInterval(tTimer);tTimer=null;closeMic();
+tGo.textContent="Start lytting";tSay("Trykk Start","")}
+tGo.onclick=()=>tTimer?stopTest():startTest();
+
+// Slagmønstre og strengguide
+const PATS=[
+{n:"Enkel: ned på hvert slag",s:["D","","D","","D","","D",""]},
+{n:"Folkepop: ned, ned-opp, opp-ned-opp",s:["D","","D","U","","U","D","U"]},
+{n:"Åttedeler: ned-opp hele veien",s:["D","U","D","U","D","U","D","U"]}];
+function strumText(name){const f=CH[name].f,first=f.findIndex(x=>x>=0),muted=f.map((x,i)=>x<0?6-i:null).filter(Boolean);
+if(first===0)return "Slå alle seks strengene";
+return "Slå fra "+(6-first)+". streng ("+NAMES[first]+"). Ikke "+muted.map(m=>m+".").join(" og ")+" streng"}
+
+// Avspiller med tidslinje (brukes av Spill i takt og Sanger)
+const players=[];
+function makePlayer(host,cfg){
+const bp=cfg.bpm||50;
+host.innerHTML=`<label>Tempo: <span class="bv">${bp}</span> slag/min</label><input type="range" class="bpm" min="40" max="100" value="${bp}"><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" class="clk" style="width:22px;height:22px;accent-color:var(--teal)">Metronomeklikk (kan forstyrre lyttingen)</label>${cfg.audio?`<label style="display:flex;gap:10px;align-items:center"><input type="checkbox" class="bg" style="width:22px;height:22px;accent-color:var(--teal)">Bakgrunnslyd under spilling (bruk hodetelefoner)</label><p style="margin:4px 0 0;font-size:15px">Uten hodetelefoner hører mikrofonen bakgrunnslyden og gir falske resultater.</p>`:""}<label>Slagmønster</label><select class="pat">${PATS.map((x,i)=>`<option value="${i}">${x.n}</option>`).join("")}</select><div class="row" style="margin-top:12px"><button class="btn go">Start</button></div><div class="status now" role="status" aria-live="polite" style="margin-top:12px">Trykk Start</div><div class="strum"><div class="pat-strip"></div><svg class="sv" viewBox="0 0 260 180" role="img" aria-label="Slagretning og strenger"></svg><p class="stxt"></p><p class="shint">Høyre hånd: ned betyr mot gulvet (fra tykk til tynn streng), opp betyr mot taket. La hånden svinge jevnt hele tiden.</p></div><div class="fdiag"></div><div class="tl" aria-label="Tidslinje"></div><p class="sum"></p><p class="perr"></p>`;
+const q=x=>host.querySelector(x),go=q(".go"),now=q(".now"),tl=q(".tl"),dg=q(".fdiag"),sum=q(".sum"),bpm=q(".bpm"),clk=q(".clk"),perr=q(".perr"),bg=q(".bg"),pat=q(".pat"),strip=q(".pat-strip"),sv=q(".sv"),stxt=q(".stxt");
+let timer=null,t0=0,last=-1,cur=-1,shown=-2,bars=[],frames=[],res=[],lastIx=-1,drawn="";
+function drawStrip(){strip.innerHTML=PATS[+pat.value].s.map((a,i)=>"<div class=\"cell\"><small>"+["1","og","2","og","3","og","4","og"][i]+"</small><b>"+(a==="D"?"↓":a==="U"?"↑":"·")+"</b></div>").join("")}
+function drawStrings(name){const f=CH[name].f;let h="";
+for(let i=0;i<6;i++){const y=40+i*16,m=f[i]<0;
+h+=`<line x1="34" x2="252" y1="${y}" y2="${y}" stroke="${m?"var(--line)":"var(--mut)"}" stroke-width="${3-i*0.4}"${m?' stroke-dasharray="5 5"':""}/><text x="10" y="${y+4}" text-anchor="middle" font-size="12" fill="var(--mut)">${6-i}</text>${m?`<text x="23" y="${y+5}" font-size="14" font-weight="700" fill="var(--bad)">X</text>`:""}`}
+const y0=40+f.findIndex(x=>x>=0)*16,sk="#E8BE9E",ol="#9C6A48";
+h+=`<g class="pk" style="transition:transform .14s"><g transform="translate(100,${y0}) scale(.78)">
+<path d="M330,-34 C240,-31 190,-27 150,-24 C140,-35 116,-41 92,-39 C74,-37 62,-28 60,-14 L60,22 C62,33 78,39 98,39 C122,39 142,35 150,29 C190,33 240,37 330,40 Z" fill="${sk}" stroke="${ol}" stroke-width="2" stroke-linejoin="round"/>
+<path d="M78,32 C66,44 62,54 68,62" fill="none" stroke="${ol}" stroke-width="17" stroke-linecap="round"/>
+<path d="M78,32 C66,44 62,54 68,62" fill="none" stroke="${sk}" stroke-width="13" stroke-linecap="round"/>
+<path d="M95,36 C86,48 84,58 90,66" fill="none" stroke="${ol}" stroke-width="16" stroke-linecap="round"/>
+<path d="M95,36 C86,48 84,58 90,66" fill="none" stroke="${sk}" stroke-width="12" stroke-linecap="round"/>
+<path d="M112,37 C106,47 105,55 109,61" fill="none" stroke="${ol}" stroke-width="13" stroke-linecap="round"/>
+<path d="M112,37 C106,47 105,55 109,61" fill="none" stroke="${sk}" stroke-width="9" stroke-linecap="round"/>
+<path d="M80,4 C68,14 56,19 46,16 C40,14 36,10 33,5" fill="none" stroke="${ol}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M80,4 C68,14 56,19 46,16 C40,14 36,10 33,5" fill="none" stroke="${sk}" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M0,0 Q4,-13 20,-18 Q42,-21 42,0 Q42,21 20,18 Q4,13 0,0 Z" fill="var(--teal)" stroke="var(--ink)" stroke-width="2"/>
+<path d="M122,-26 C94,-28 76,-23 60,-19 C48,-16 38,-15 31,-12 C21,-8 22,3 31,4 C44,6 58,6 72,8 C88,11 108,12 122,8 Z" fill="${sk}"/>
+<path d="M114,-26.5 C94,-28 76,-23 60,-19 C48,-16 38,-15 31,-12 C21,-8 22,3 31,4 C44,6 58,6 72,8 C84,10 96,11.5 108,11" fill="none" stroke="${ol}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="37" cy="-5" rx="8" ry="4.5" transform="rotate(-6 37 -5)" fill="#F7E6D8" stroke="${ol}" stroke-width="1.2"/>
+<path d="M64,-12 C61,-8 61,-3 64,1" fill="none" stroke="${ol}" stroke-width="1.5" opacity=".6"/>
+<path d="M104,-30 C110,-12 110,10 104,26" fill="none" stroke="${ol}" stroke-width="1.5" opacity=".45"/>
+</g></g>`;
+sv.innerHTML=h;sv.dataset.y0=y0;drawn=name;stxt.textContent=strumText(name)}
+pat.onchange=()=>{drawStrip();lastIx=-1};
+drawStrip();
+const tot=()=>cfg.total?cfg.total():0;
+bpm.oninput=()=>q(".bv").textContent=bpm.value;
+function ensure(i){const T=tot(),mx=T?Math.min(i,T-1):i;for(let k=bars.length;k<=mx;k++){const d=document.createElement("div");d.className="bar";
+d.innerHTML="<span>"+cfg.chordAt(k)+"</span><small></small><span class=\"fill\"></span>";tl.appendChild(d);bars.push(d)}}
+function cls(el,avg){el.classList.remove("g","y","r");const c=avg>=0.6?"g":avg>=0.25?"y":"r";el.classList.add(c);
+el.querySelector("small").textContent=c==="g"?"riktig":c==="y"?"nesten":"feil";return c}
+function show(i,first){shown=i;const T=tot();
+dg.innerHTML="<figure><figcaption>"+(first?"Først: ":"Nå: ")+cfg.chordAt(i)+"</figcaption>"+diagram(cfg.chordAt(i))+"</figure>"+
+((!T||i+1<T)?"<figure class=\"nxt\"><figcaption>Neste: "+cfg.chordAt(i+1)+"</figcaption>"+diagram(cfg.chordAt(i+1))+"</figure>":"")}
+function fin(i){const avg=frames.length?frames.reduce((a,b)=>a+b,0)/frames.length:0;res.push({c:cfg.chordAt(i),k:cls(bars[i],avg)})}
+function tick(){
+const el=Date.now()-t0,bm=60000/bpm.value,barMs=bm*4,bi=Math.floor(el/bm);
+if(bi>last){last=bi;if(clk.checked)click(bi%4===0)}
+const t=el-barMs,T=tot();
+const cb=t<0?0:Math.floor(t/barMs),cn=cfg.chordAt(T&&cb>=T?T-1:cb);
+if(cn!==drawn)drawStrings(cn);
+const ix=Math.floor(el/(bm/2))%8;
+if(ix!==lastIx){lastIx=ix;[...strip.children].forEach((c,k)=>c.classList.toggle("on",k===ix));
+const a=PATS[+pat.value].s[ix],pk=sv.querySelector(".pk");
+if(a&&pk){pk.style.transform="translateY("+(a==="D"?120-(+sv.dataset.y0):0)+"px)";stxt.textContent=(a==="D"?"NED. ":"OPP. ")+strumText(cn)}}
+if(t<0){now.className="status";now.textContent="Gjør deg klar: "+cfg.chordAt(0)+" om "+Math.ceil(-t/bm)+" slag";ensure(3);if(shown!==0)show(0,true);return}
+const bar=Math.floor(t/barMs),ph=(t-bar*barMs)/barMs;
+if(bar!==cur){if(cur>=0)fin(cur);if(T&&bar>=T){stop(true);return}
+cur=bar;frames=[];ensure(bar+3);show(bar,false);if(bg&&bg.checked)cfg.audio(bar,bm);bars.forEach((b,k)=>b.classList.toggle("cur",k===bar));
+tl.scrollLeft=Math.max(0,bars[bar].offsetLeft-tl.offsetLeft-84)}
+bars[bar].querySelector(".fill").style.width=(ph*100)+"%";
+const target=cfg.chordAt(bar),r=listen();let v=0,lab="stille";
+if(r){const st=r.sc[target],gap=r.sc[r.best]-st;v=st>=0.8&&gap<=0.04?1:(st>=0.7&&gap<=0.12?0.5:0);lab=r.sc[r.best]>=0.75?r.best:"?"}
+now.className="status "+(v===1?"good":v===0.5?"warn":"bad");
+now.textContent="Spill "+target+". Du spiller: "+lab;
+if(ph>=0.25){frames.push(v);if(frames.length>=3)cls(bars[bar],frames.reduce((a,b)=>a+b,0)/frames.length)}}
+function stop(done){
+if(!timer)return;clearInterval(timer);timer=null;closeMic();go.textContent="Start";
+now.className="status";now.textContent=done?"Ferdig!":"Stoppet";
+const n=res.length;if(!n){sum.textContent="";return}
+const g=res.filter(x=>x.k==="g").length,y=res.filter(x=>x.k==="y").length,r=res.filter(x=>x.k==="r").length;
+const bad=[...new Set(res.filter(x=>x.k!=="g").map(x=>x.c))];
+sum.textContent=n+" takter: "+g+" riktige, "+y+" nesten, "+r+" feil ("+Math.round(100*g/n)+" % riktige)."+(bad.length?" Øv mer på: "+bad.join(", ")+".":" Alle riktige!")}
+async function start(){
+perr.textContent="";players.forEach(p=>p!==api&&p.stop());stopTest();
+const msg=cfg.prepare&&cfg.prepare();
+if(msg){now.className="status bad";now.textContent=msg;return}
+if(!(await openMic(perr)))return;
+bars=[];res=[];frames=[];cur=-1;last=-1;shown=-2;lastIx=-1;drawn="";tl.innerHTML="";dg.innerHTML="";sum.textContent="";
+t0=Date.now();timer=setInterval(tick,100);go.textContent="Stopp"}
+const api={start,stop:()=>stop(false),running:()=>!!timer,bpm:()=>+bpm.value,setPat:i=>{pat.value=i;drawStrip();lastIx=-1},setBpm:v=>{bpm.value=v;q(".bv").textContent=v}};
+go.onclick=()=>timer?stop(false):start();
+players.push(api);return api}
+
+// Spill i takt: velg akkorder selv
+let fSel=["Em","C","G","D"],fPool=[],fSeq=[];
+const fChips=document.getElementById("fChips"),fSelTxt=document.getElementById("fSel");
+Object.keys(CH).forEach(n=>{const b=document.createElement("button");b.textContent=n;b.onclick=()=>{if(fp.running())return;const k=fSel.indexOf(n);if(k>=0)fSel.splice(k,1);else fSel.push(n);fUpd()};fChips.appendChild(b)});
+document.getElementById("fAll").onclick=()=>{if(fp.running())return;fSel=Object.keys(CH);fUpd()};
+document.getElementById("fNone").onclick=()=>{if(fp.running())return;fSel=[];fUpd()};
+function fUpd(){[...fChips.children].forEach(b=>b.setAttribute("aria-pressed",fSel.includes(b.textContent)));
+fSelTxt.textContent=fSel.length?"Rekkefølge: "+fSel.join(" → "):"Velg minst én akkord."}
+function fChord(i){while(fSeq.length<=i){
+if(document.getElementById("fRand").checked&&fPool.length>1){const k=fPool.filter(x=>x!==fSeq[fSeq.length-1]);fSeq.push(k[Math.floor(Math.random()*k.length)])}
+else fSeq.push(fPool[fSeq.length%fPool.length])}return fSeq[i]}
+const fp=makePlayer(document.getElementById("fHost"),{chordAt:fChord,bpm:50,prepare:()=>{if(!fSel.length)return "Velg minst én akkord";fPool=[...fSel];fSeq=[];return null}});
+fUpd();
+
+// Sanger
+const SONGS=[
+{n:"Gledessangen (Beethoven)",p:0,l:"Lett, G og D. Her spilles melodien med",bpm:60,reps:1,c:["G","D","G","D","G","D","G","G"],
+m:[[[71,0],[71,1],[72,2],[74,3]],[[74,0],[72,1],[71,2],[69,3]],[[67,0],[67,1],[69,2],[71,3]],[[71,0],[69,1.5],[69,2]],
+[[71,0],[71,1],[72,2],[74,3]],[[74,0],[72,1],[71,2],[69,3]],[[67,0],[67,1],[69,2],[71,3]],[[69,0],[67,1.5],[67,2]]]},
+{n:"Horse With No Name",p:0,l:"Lettest, 2 akkorder",bpm:50,reps:2,c:["Em","D","Em","D","Em","D","Em","D"]},
+{n:"Knockin' on Heaven's Door",p:1,l:"Lett, 4 akkorder",bpm:55,reps:2,c:["G","D","Am","Am","G","D","C","C"]},
+{n:"Stand By Me",p:1,l:"Lett, 4 akkorder",bpm:55,reps:2,c:["G","G","Em","Em","C","D","G","G"]},
+{n:"Sweet Home Alabama",p:1,l:"Lett, 3 akkorder",bpm:60,reps:2,c:["D","C","G","G","D","C","G","G"]},
+{n:"Brown Eyed Girl",p:1,l:"Middels, 4 akkorder",bpm:60,reps:1,c:["G","C","G","D","G","C","G","D","C","D","G","Em","C","D","G","D"]},
+{n:"Pop-rekken G D Em C",p:1,l:"Lett, brukes i hundrevis av sanger",bpm:55,reps:2,c:["G","D","Em","C","G","D","Em","C"]},
+{n:"12-takts blues i A",p:2,l:"Middels, 3 akkorder",bpm:60,reps:1,c:["A","A","A","A","D","D","A","A","E","D","A","E"]}];
+let song=SONGS[0];
+const sl=document.getElementById("songList"),si=document.getElementById("songInfo");
+const sp=makePlayer(document.getElementById("sHost"),{bpm:song.bpm,chordAt:i=>song.c[i%song.c.length],total:()=>song.c.length*song.reps,audio:(i,bm)=>audioBar(i,bm),prepare:()=>{stopPv();return null}});
+function pick(k){song=SONGS[k];sp.setBpm(song.bpm);sp.setPat(song.p||0);
+[...sl.children].forEach((b,j)=>b.setAttribute("aria-pressed",j===k));
+si.textContent="Akkorder: "+[...new Set(song.c)].join(", ")+". "+song.c.length*song.reps+" takter, hver på 4 slag. "+(song.m?"Melodi og akkorder spilles av.":"Bare akkordene spilles av, fordi melodier til opphavsrettsbeskyttede sanger ikke er med.")}
+SONGS.forEach((x,k)=>{const b=document.createElement("button");b.className="song";b.innerHTML=x.n+"<small>"+x.l+"</small>";
+b.onclick=()=>{if(sp.running())return;stopPv();pick(k)};sl.appendChild(b)});
+function audioBar(i,bm){
+const ch=song.c[i%song.c.length],u=bm/1000;
+[0,2].forEach(b=>notes(ch).forEach((m,k)=>pluck(m,b*u+k*0.03,0.16)));
+if(song.m)(song.m[i%song.m.length]||[]).forEach(n=>pluck(n[0],n[1]*u,0.5))}
+let pv=null,pvI=0;
+const hear=document.getElementById("sHear");
+function stopPv(){if(pv){clearTimeout(pv);pv=null}pvI=0;hear.textContent="Hør sangen først"}
+function stepPv(){const T=song.c.length*song.reps;if(pvI>=T){stopPv();return}
+const bm=60000/sp.bpm();audioBar(pvI,bm);pvI++;pv=setTimeout(stepPv,bm*4)}
+hear.onclick=()=>{if(pv){stopPv();return}players.forEach(p=>p.stop());ac();hear.textContent="Stopp avspilling";stepPv()};
+pick(0);
+document.getElementById("tHear").onclick=()=>{tIgnore=Date.now()+1800;strum(tCur)};
+showT("Em");
+// Hold skjermen våken mens appen lytter eller trener
+let wl=null;
+async function keepAwake(){try{if("wakeLock" in navigator&&!wl&&document.visibilityState==="visible"){wl=await navigator.wakeLock.request("screen");wl.addEventListener("release",()=>{wl=null})}}catch(e){}}
+function allowSleep(){try{if(wl){wl.release();wl=null}}catch(e){}}
+function inUse(){return !!(tTimer||micTimer||timer||players.some(p=>p.running()))}
+setInterval(()=>{inUse()?keepAwake():allowSleep()},1500);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&inUse())keepAwake()});
+</script>
+</body>
+</html>
